@@ -38,7 +38,7 @@ def checkAccount(accountNumber):
 def createAccount(accountNumber,name='',initialBalance=1000):
     if checkAccount(accountNumber):
         printerror('EXISTERR')
-        #enterKeyToContinue()
+        
         return
     
     # Gathering details and appending to accounts dict database
@@ -49,31 +49,30 @@ def createAccount(accountNumber,name='',initialBalance=1000):
     # Add the account to dict database
     accounts[accountNumber]={'name': name, 'balance':initialBalance}
     print("Addition successful") if checkAccount(accountNumber) else print("error in adding account")
-    #enterKeyToContinue()
+    
 
 def retreiveDetails(accountNumber):
     if not checkAccount(accountNumber):
         printerror('ABSENTERR')
-        #enterKeyToContinue()
         return
     
     details=accounts[accountNumber]
     print(f"Details of the account holder for {accountNumber}:")
     print(f"Name of the Holder: {details['name']} \nBalance: {details['balance']}")
-    #enterKeyToContinue()
+    
     
 # -------------------------------------------------------------------
 # METHODS FOR FINANCIAL TRANSACTIONS
 # -------------------------------------------------------------------
 
 def validatePAN(pan): 
-    if len(pan)==10: return True
+    if len(pan)==10 and pan.isalnum(): return True
+    else: return False
 
 def deposit(accountNumber, amount):
     # Constraints
     if not checkAccount(accountNumber):
         printerror('ABSENTERR')
-        #enterKeyToContinue()
         return
 
     if amount>=100000:
@@ -85,31 +84,39 @@ def deposit(accountNumber, amount):
     # Deposit - add the amount to balance
     accounts[accountNumber]['balance'] += amount
     print(f"Deposit of {amount} successful")
-    #enterKeyToContinue()
     
 def withdraw(accountNumber, amount):
     # Constraints
     if not checkAccount(accountNumber):
         printerror('ABSENTERR')
-        #enterKeyToContinue()
         return
 
     balance=accounts[accountNumber]['balance']
     if (amount-balance) < 1000:
         printerror('BALANCEERR')
-        #enterKeyToContinue()
         return
 
     # Withdrawal - remove the amount from balance
     accounts[accountNumber]['balance'] -= amount
     print(f"Withdrawal of {amount} successful")
-    #enterKeyToContinue()
+    
 
 def transfer(fromAcc, toAcc, amount=0):
     # Withdraws fromAcc and Deposits toAcc - all constraints followed
-    withdraw(fromAcc, amount)
-    deposit(toAcc,amount)
-    #enterKeyToContinue()
+    
+    if (amount-accounts[fromAcc]['balance']) < 1000:
+        printerror('BALANCEERR')
+        return
+    
+    if amount>=100000:
+        printerror('MAXDEPOSIT')
+        pan=input("Enter PAN: ")
+        if validatePAN(pan)==False: 
+            printerror('PANERR')
+            return
+
+    accounts[fromAcc]['balance'] -= amount  #withdraw(fromAcc, amount)
+    accounts[toAcc]['balance'] += amount    #deposit(toAcc,amount)
 
 # -------------------------------------------------------------------
 # Main Code starts here
@@ -124,7 +131,7 @@ BANKING PORTAL
 3] Deposit Amount to Account
 4] Withdraw Amount from Account
 5] Transfer Amount
-Choice: 
+Choice: (0 to exit)
 """
 while True:
     choice=int(input(menu))
