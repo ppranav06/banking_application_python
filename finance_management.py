@@ -3,52 +3,79 @@
 # Banking application using python - implemented via dictionaries
 # Financial transactions module
 
-import csv
 from account_management import *
-
-errorDict={
-    'INVALIDERR':'Invalid Account Number',
-    'ABSENTERR':'Account not found',
-    'EXISTERR':'Account already exists',
-    'BALANCEERR':'Insufficient Balance',
-    'MAXDEPOSIT':'Maximum Deposit Limit is 100000',
-    'PANERR':'Inavlid PAN (Permanent Account Number)',
-}
-printerror = lambda string: print(errorDict[string])
-
-def validatePAN(pan): 
-    if len(pan)==10: return True
+import database as db
 
 def deposit(accountNumber, amount):
     # Constraints
-    if not checkAccount(accountNumber):
-        printerror('ABSENTERR')
+    if not accountExists(accountNumber):
+        db.printerror('ABSENT_ERR')
         return
 
     if amount>=100000:
-        printerror('MAXDEPOSIT')
+        db.printerror('MAXDEPOSIT')
         pan=input("Enter PAN: ")
-        if validatePAN(pan)==False: 
+        if db.validatePAN(pan)==False: 
             return
     
     # Deposit - add the amount to balance
-    accounts[accountNumber]['balance'] += amount
-    
+    db.accounts[accountNumber]['balance'] += amount
+    print(f"Deposit of {amount} successful")
+
+
 def withdraw(accountNumber, amount):
     # Constraints
-    if not checkAccount(accountNumber):
-        printerror('ABSENTERR')
+    if not accountExists(accountNumber):
+        db.printerror('ABSENT_ERR')
         return
 
-    balance=accounts[accountNumber]['balance']
-    if (amount-balance) < 1000:
-        printerror('BALANCEERR')
+    existing=db.accounts[accountNumber]['balance']
+    
+    # withdraw past available money prevention - insufficient funds
+    if amount > existing:
+        db.printerror('INSUF_FUNDS_ERR')
+        print("Transaction Failed")
+        return
+
+    # withdraw prevention if balance < 1000
+    if (amount - existing) < 1000:
+        db.printerror('MIN_BALANCE_ERR')
+        print("Transaction Failed")
         return
 
     # Withdrawal - remove the amount from balance
-    accounts[accountNumber]['balance'] -= amount
+    db.accounts[accountNumber]['balance'] -= amount
+    print(f"Withdrawal of {amount} successful")
+    
 
 def transfer(fromAcc, toAcc, amount):
     # Withdraws fromAcc and Deposits toAcc - all constraints followed
-    withdraw(fromAcc, amount)
-    deposit(toAcc,amount)
+
+    if (fromAcc not in db.accounts) or (toAcc not in db.accounts):
+        db.printerror('ABSENT_ERR')
+        print("At least one of the account numbers doesn't exist.")
+        return
+    
+    balance_fromAcc=db.accounts[fromAcc]['balance']
+    balance_toAcc=db.accounts[toAcc]['balance']
+
+    if amount > balance_fromAcc: 
+        db.printerror('INSUF_FUNDS_ERR')
+        return
+
+    if (amount - balance_fromAcc) < 1000:
+        db.printerror('BALANCE_ERR')
+        return
+
+    totalFunds=balance_toAcc+amount
+    if (totalFunds >= 100000):  
+        db.printerror('MAXLIMIT_ERR')
+        pan=input("Enter PAN: ")
+        if db.validatePAN(pan,toAcc)=='not matching': 
+            db.printerror('PAN_ERR')
+            print("Transaction Failed")
+            return
+
+    db.accounts[fromAcc]['balance'] -= amount  #withdraw(fromAcc, amount)
+    db.accounts[toAcc]['balance'] += amount    #deposit(toAcc,amount)
+    print(f"Transfer of {amount} from {fromAcc} to {toAcc} successful.")

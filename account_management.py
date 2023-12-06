@@ -3,46 +3,39 @@
 # Banking application using python - implemented via dictionaries
 # Account Managememt module
 
-import csv
+import database as db
 
-accounts={
-    0000000000000:{
-        'name':str(),
-        'balance':float()
-    }
-}
+def accountExists(accountNumber):
+    return (accountNumber in db.accounts)
 
-errorDict={
-    'INVALIDERR':'Invalid Account Number',
-    'ABSENTERR':'Account not found',
-    'EXISTERR':'Account already exists',
-    'BALANCEERR':'Insufficient Balance',
-    'MAXDEPOSIT':'Maximum Deposit Limit is 100000',
-    'PANERR':'Inavlid PAN (Permanent Account Number)',
-}
-printerror = lambda string: print(errorDict[string])
-
-
-def checkAccount(accountNumber):
-    if accountNumber in accounts.keys():
-        return True
-    
-    return False
-
-def createAccount(accountNumber,name,initialBalance):
-    if checkAccount(accountNumber)==True:
-        print(f"E2: Account Number {accountNumber} already exists. Enter a new number.")
+def createAccount(accountNumber,name='',pan='',initialBalance=1000):
+    if accountExists(accountNumber):
+        db.printerror('EXIST_ERR')
         return
+    
+    # Gathering details (if not already) and appending to db.accounts - dict database
+    if (name and pan and initialBalance) == '':
+        name=input("Name of the holder: ")
+        pan=input("PAN: ")
+        initialBalance=float(input("Initial Balance: "))
 
-    accountDetails={'name': name, 'balance':initialBalance}
-
-    accounts[accountNumber]=accountDetails
+    # Add the account to dict database
+    db.accounts[accountNumber]={
+        'name': name, 
+        'balance':initialBalance, 
+        'pan':pan
+    }
+    
+    print("Addition successful") if accountExists(accountNumber) else print("error in adding account")
+    
 
 def retreiveDetails(accountNumber):
-    if checkAccount(accountNumber)==False:
-        print("E1: Account Number not found.")
+    if not accountExists(accountNumber):
+        db.printerror('ABSENT_ERR')
         return
     
-    details=accounts[accountNumber]
-    print(f"Account Number: {accountNumber} \nName of the Holder: {details['name']} \nBalance: {details['balance']}")
-    
+    # Gather the name and available balance of account number
+    details=db.accounts[accountNumber]
+
+    print(f"Details of the account holder for {accountNumber}:")
+    print(f"Name of the Holder: {details['name']} \nBalance: {details['balance']}")

@@ -2,136 +2,12 @@
 
 # Banking application using python - implemented via dictionaries
 
-accounts={
-    # Format: 10000|570|00000 - Bank|Branch|AccountNumber
-    1000057000000:{
-        'name':str(),
-        'balance':float()
-    }
-}
+import string
+import os
 
-errorDict={
-    'INVALID_ERR':'Invalid Account Number',
-    'ABSENT_ERR':'Account not found',
-    'EXIST_ERR':'Account already exists',
-    'INSUF_FUNDS_ERR':'Insufficient Balance',
-    'MIN_BALANCE_ERR':'Minimum Balance not maintained',
-    'MAXLIMIT_ERR':'Maximum Deposit Limit is 100000',
-    'INPUT_ERR':'Invalid Input Given',
-}
-printerror = lambda errorIdentifier: print(f"{errorIdentifier}: {errorDict[errorIdentifier]}")
-
-def press_enter_to_continue():
-    input("Press Enter to continue...")
-
-def account_number_validity(accountNumber):
-    # Format: 10000|570|00000 - Bank|Branch|AccountNumber
-    accountNumber=str(accountNumber)
-    return (len(accountNumber)==13) and ('10000570' in accountNumber)
-
-# -------------------------------------------------------------------
-# ACCOUNT MANAGEMENT METHODS
-# -------------------------------------------------------------------
-
-def accountExists(accountNumber):
-    return accountNumber in accounts
-
-def createAccount(accountNumber,name='',initialBalance=1000):
-    if accountExists(accountNumber):
-        printerror('EXIST_ERR')
-        return
-    
-    # Gathering details (if not already) and appending to accounts - dict database
-    if (name and initialBalance) == '':
-        name=input("Name of the holder: ")
-        initialBalance=float(input("Initial Balance: "))
-
-    # Add the account to dict database
-    accounts[accountNumber]={'name': name, 'balance':initialBalance}
-    print("Addition successful") if accountExists(accountNumber) else print("error in adding account")
-    
-
-def retreiveDetails(accountNumber):
-    if not accountExists(accountNumber):
-        printerror('ABSENT_ERR')
-        return
-    
-    # Gather the name and available balance of account number
-    details=accounts[accountNumber]
-    print(f"Details of the account holder for {accountNumber}:")
-    print(f"Name of the Holder: {details['name']} \nBalance: {details['balance']}")
-    
-    
-# -------------------------------------------------------------------
-# METHODS FOR FINANCIAL TRANSACTIONS
-# -------------------------------------------------------------------
-
-def validatePAN(pan): 
-    return len(pan) == 10 and pan.isalnum()
-
-def deposit(accountNumber, amount):
-    # Constraints
-    if not accountExists(accountNumber):
-        printerror('ABSENT_ERR')
-        return
-
-    if amount>=100000:
-        printerror('MAXDEPOSIT')
-        pan=input("Enter PAN: ")
-        if validatePAN(pan)==False: 
-            return
-    
-    # Deposit - add the amount to balance
-    accounts[accountNumber]['balance'] += amount
-    print(f"Deposit of {amount} successful")
-    
-def withdraw(accountNumber, amount):
-    # Constraints
-    if not accountExists(accountNumber):
-        printerror('ABSENT_ERR')
-        return
-
-    existing=accounts[accountNumber]['balance']
-    
-    # withdraw past available money prevention - insufficient funds
-    if amount > existing:
-        printerror('INSUF_FUNDS_ERR')
-        print("Transaction Failed")
-        return
-
-    # withdraw prevention if balance < 1000
-    if (amount-existing) < 1000:
-        printerror('MIN_BALANCE_ERR')
-        print("Transaction Failed")
-        return
-
-    # Withdrawal - remove the amount from balance
-    accounts[accountNumber]['balance'] -= amount
-    print(f"Withdrawal of {amount} successful")
-    
-
-def transfer(fromAcc, toAcc, amount):
-    # Withdraws fromAcc and Deposits toAcc - all constraints followed
-
-    if fromAcc not in accounts or toAcc not in accounts:
-        printerror('ABSENT_ERR')
-        print("Atleast one of the account numbers doesn't exist.")
-        return
-    
-    if (amount - accounts[fromAcc]['balance']) < 1000:
-        printerror('BALANCE_ERR')
-        return
-    
-    if (amount + accounts[toAcc]['balance']) >= 100000:
-        printerror('MAXLIMIT_ERR')
-        pan=input("Enter PAN: ")
-        if validatePAN(pan)==False: 
-            printerror('PAN_ERR')
-            return
-
-    accounts[fromAcc]['balance'] -= amount  #withdraw(fromAcc, amount)
-    accounts[toAcc]['balance'] += amount    #deposit(toAcc,amount)
-    print(f"Transfer of {amount} from {fromAcc} to {toAcc} successful.")
+from account_management import *
+from finance_management import *
+from database import *
 
 # -------------------------------------------------------------------
 # Main Code starts here
@@ -150,7 +26,7 @@ Choice: (0 to logout)
 """
 while True:
     accountNumber=int(input("Account Number: "))
-    # the 
+    # the validity is checked before account number
     if not account_number_validity(accountNumber):
         printerror('INVALID_ERR')
         continue

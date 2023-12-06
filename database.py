@@ -39,7 +39,7 @@ PAN={
 def validatePAN(pan, accountNumber): 
     if (len(pan)!=10) or (pan[3] not in ('P','T','C')):
         printerror('INVALID_PAN_ERR')
-        return
+        return 'invalid'
     
     return 'matching' if (pan == accounts[accountNumber]['pan']) else 'not matching'
 
@@ -53,7 +53,7 @@ errorDict={
 
     'INVALID_PAN_ERR':'Invalid PAN entered',
     
-    'INSUF_FUNDS_ERR':'Insufficient Balance',
+    'INSUF_FUNDS_ERR':'Insufficient Funds',
     'MIN_BALANCE_ERR':'Minimum Balance not maintained',
     'MAXLIMIT_ERR':'Maximum Deposit Limit is 100000',
     
