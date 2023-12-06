@@ -19,30 +19,29 @@ errorDict={
     'MAXLIMIT_ERR':'Maximum Deposit Limit is 100000',
     'INPUT_ERR':'Invalid Input Given',
 }
-printerror = lambda string: print(f"{string}: {errorDict[string]}")
+printerror = lambda errorIdentifier: print(f"{errorIdentifier}: {errorDict[errorIdentifier]}")
 
 def press_enter_to_continue():
     input("Press Enter to continue...")
-def account_number_validity(accountNumber):
-    return (len(str(accountNumber))==13) and ('10000570' in str(accountNumber))
 
+def account_number_validity(accountNumber):
+    # Format: 10000|570|00000 - Bank|Branch|AccountNumber
+    accountNumber=str(accountNumber)
+    return (len(accountNumber)==13) and ('10000570' in accountNumber)
 
 # -------------------------------------------------------------------
 # ACCOUNT MANAGEMENT METHODS
 # -------------------------------------------------------------------
 
 def accountExists(accountNumber):
-    if accountNumber in accounts:
-        return True
-    
-    return False
+    return accountNumber in accounts
 
 def createAccount(accountNumber,name='',initialBalance=1000):
     if accountExists(accountNumber):
         printerror('EXIST_ERR')
         return
     
-    # Gathering details and appending to accounts dict database
+    # Gathering details (if not already) and appending to accounts - dict database
     if (name and initialBalance) == '':
         name=input("Name of the holder: ")
         initialBalance=float(input("Initial Balance: "))
@@ -152,12 +151,13 @@ Choice: (0 to logout)
 while True:
     accountNumber=int(input("Account Number: "))
     # the 
-    if not accountExists(accountNumber):
-        printerror('ABSENT_ERR')
-        continue
     if not account_number_validity(accountNumber):
         printerror('INVALID_ERR')
         continue
+    if not accountExists(accountNumber):
+        printerror('ABSENT_ERR')
+        continue
+    
 # FUNCTIONALITY TO ADD:
 # CREATE AN ACCOUNT FROM MENU SOMEHOW
     choice=int(input(menu))
